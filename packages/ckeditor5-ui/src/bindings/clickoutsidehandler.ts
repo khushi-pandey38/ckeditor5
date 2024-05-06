@@ -7,7 +7,7 @@
  * @module ui/bindings/clickoutsidehandler
  */
 
-import type { DomEmitter } from '@ckeditor/ckeditor5-utils';
+import type { CallbackOptions, DomEmitter } from '@ckeditor/ckeditor5-utils';
 
 /* global document */
 
@@ -26,15 +26,16 @@ import type { DomEmitter } from '@ckeditor/ckeditor5-utils';
  * @param options.callback An action executed by the handler.
  */
 export default function clickOutsideHandler(
-	{ emitter, activator, callback, contextElements }: {
+	{ emitter, activator, callback, contextElements, options }: {
 		emitter: DomEmitter;
-		activator: () => boolean;
+		activator: ( domEvt: MouseEvent ) => boolean;
 		contextElements: Array<HTMLElement> | ( () => Array<HTMLElement> );
 		callback: () => void;
+		options?: CallbackOptions;
 	}
 ): void {
 	emitter.listenTo( document, 'mousedown', ( evt, domEvt ) => {
-		if ( !activator() ) {
+		if ( !activator( domEvt ) ) {
 			return;
 		}
 
@@ -51,5 +52,5 @@ export default function clickOutsideHandler(
 		}
 
 		callback();
-	} );
+	}, options );
 }

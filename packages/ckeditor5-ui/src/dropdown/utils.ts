@@ -106,13 +106,16 @@ import ListItemGroupView from '../list/listitemgroupview.js';
  *
  * @param locale The locale instance.
  * @param ButtonClassOrInstance The dropdown button view class. Needs to implement the
+ * @param defaultBehaviorAttributes Attributes for the default behavior of the dropdown.
+ *
  * {@link module:ui/dropdown/button/dropdownbutton~DropdownButton} interface.
  * @returns The dropdown view instance.
  */
 export function createDropdown(
 	locale: Locale | undefined,
 	ButtonClassOrInstance:
-		( new ( locale?: Locale ) => DropdownButton & FocusableView ) | DropdownButton & FocusableView = DropdownButtonView
+		( new ( locale?: Locale ) => DropdownButton & FocusableView ) | DropdownButton & FocusableView = DropdownButtonView,
+	defaultBehaviorAttributes: DefaultBehaviorAttributes = {}
 ): DropdownView {
 	const buttonView = typeof ButtonClassOrInstance == 'function' ? new ButtonClassOrInstance( locale ) : ButtonClassOrInstance;
 
@@ -127,7 +130,7 @@ export function createDropdown(
 		buttonView.bind( 'isOn' ).to( dropdownView, 'isOpen' );
 	}
 
-	addDefaultBehavior( dropdownView );
+	addDefaultBehavior( dropdownView, defaultBehaviorAttributes );
 
 	return dropdownView;
 }
@@ -411,19 +414,29 @@ export function focusChildOnDropdownOpen(
 /**
  * Add a set of default behaviors to dropdown view.
  */
-function addDefaultBehavior( dropdownView: DropdownView ) {
-	closeDropdownOnClickOutside( dropdownView );
+function addDefaultBehavior( dropdownView: DropdownView, attributes: DefaultBehaviorAttributes ) {
+	closeDropdownOnClickOutside( dropdownView, attributes.getOutsideDropdownElements );
 	closeDropdownOnExecute( dropdownView );
-	closeDropdownOnBlur( dropdownView );
+	closeDropdownOnBlur( dropdownView, attributes.getOutsideDropdownElements );
 	focusDropdownContentsOnArrows( dropdownView );
 	focusDropdownButtonOnClose( dropdownView );
 	focusDropdownPanelOnOpen( dropdownView );
 }
 
 /**
+ * Represents the attributes for the default behavior of a dropdown.
+ */
+type DefaultBehaviorAttributes = {
+	getOutsideDropdownElements?: () => Array<HTMLElement>;
+};
+
+/**
  * Adds a behavior to a dropdownView that closes opened dropdown when user clicks outside the dropdown.
  */
-function closeDropdownOnClickOutside( dropdownView: DropdownView ) {
+function closeDropdownOnClickOutside(
+	dropdownView: DropdownView,
+	getOutsideDropdownElements: () => Array<HTMLElement> = () => []
+) {
 	dropdownView.on<UIViewRenderEvent>( 'render', () => {
 		clickOutsideHandler( {
 			emitter: dropdownView,
@@ -433,6 +446,7 @@ function closeDropdownOnClickOutside( dropdownView: DropdownView ) {
 			},
 			contextElements: () => [
 				dropdownView.element!,
+				...getOutsideDropdownElements(),
 				...( dropdownView.focusTracker._elements as Set<HTMLElement> )
 			]
 		} );
@@ -457,9 +471,16 @@ function closeDropdownOnExecute( dropdownView: DropdownView ) {
 /**
  * Adds a behavior to a dropdown view that closes opened dropdown when it loses focus.
  */
-function closeDropdownOnBlur( dropdownView: DropdownView ) {
+function closeDropdownOnBlur(
+	dropdownView: DropdownView,
+	getOutsideDropdownElements: () => Array<HTMLElement> = () => []
+) {
 	dropdownView.focusTracker.on<ObservableChangeEvent<boolean>>( 'change:isFocused', ( evt, name, isFocused ) => {
-		if ( dropdownView.isOpen && !isFocused ) {
+		const isOutsideElementFocused = getOutsideDropdownElements().find(
+			element => element.contains( global.document.activeElement )
+		);
+
+		if ( !isOutsideElementFocused && dropdownView.isOpen && !isFocused ) {
 			dropdownView.isOpen = false;
 		}
 	} );
