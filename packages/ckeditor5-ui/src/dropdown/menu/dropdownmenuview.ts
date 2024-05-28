@@ -10,7 +10,6 @@
 import {
 	FocusTracker,
 	KeystrokeHandler,
-	getOptimalPosition,
 	global,
 	type PositioningFunction,
 	type ObservableChangeEvent
@@ -159,7 +158,7 @@ export default class DropdownMenuView extends View implements FocusableView {
 		this.set( 'parentMenuView', null );
 		this.set( 'pendingLazyInitialization', false );
 
-		this.panelView.children.add( this.listView );
+		this.panelView.content.add( this.listView );
 		this.panelView.render();
 
 		this.setTemplate( {
@@ -320,33 +319,13 @@ export default class DropdownMenuView extends View implements FocusableView {
 				return;
 			}
 
-			const buttonRect = buttonView.element!.getBoundingClientRect();
-			const optimalPanelPosition = DropdownMenuView._getOptimalPosition( {
+			panelView.pin( {
+				positions: this._panelPositions,
+				limiter: global.document.body,
 				element: panelView.element!,
 				target: buttonView.element!,
-				fitInViewport: true,
-				positions: this._panelPositions,
-				limiter: global.document.body
+				fitInViewport: true
 			} );
-
-			const position = (
-				optimalPanelPosition ? optimalPanelPosition.name : this._panelPositions[ 0 ].name
-			) as DropdownMenuPanelPosition;
-
-			if ( optimalPanelPosition ) {
-				let topMargin = 0;
-
-				// Add the button height to the top margin if the panel is positioned below the button.
-				if ( position === 'en' || position === 'wn' ) {
-					topMargin += buttonRect.height;
-				}
-
-				panelView.set( {
-					top: optimalPanelPosition.top + topMargin,
-					left: optimalPanelPosition.left,
-					position
-				} );
-			}
 		} );
 	}
 
@@ -374,11 +353,4 @@ export default class DropdownMenuView extends View implements FocusableView {
 			return [ westSouth, westNorth, eastSouth, eastNorth ];
 		}
 	}
-
-	/**
-	 * A function used to calculate the optimal position for the dropdown panel.
-	 *
-	 * Referenced for unit testing purposes.
-	 */
-	private static _getOptimalPosition = getOptimalPosition;
 }

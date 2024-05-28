@@ -20,6 +20,12 @@
 	height: fit-content;
 	max-width: var(--ck-dropdown-menu-menu-panel-max-width);
 
+	/* Reset balloon styling */
+	&::after,
+	&::before {
+		display: none;
+	}
+
 	/* Corner border radius consistent with the button. */
 	&.ck-dropdown-menu__menu__panel_position_es,
 	&.ck-dropdown-menu__menu__panel_position_se {

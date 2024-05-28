@@ -53,7 +53,7 @@ export const DropdownMenuViewPanelPositioningFunctions: Record<string, Positioni
 	} ),
 
 	eastNorth: ( buttonRect, panelRect ) => ( {
-		top: buttonRect.top - panelRect.height,
+		top: buttonRect.top - panelRect.height + buttonRect.height,
 		left: buttonRect.right - NESTED_PANEL_HORIZONTAL_OFFSET,
 		name: 'en'
 	} ),
@@ -65,7 +65,7 @@ export const DropdownMenuViewPanelPositioningFunctions: Record<string, Positioni
 	} ),
 
 	westNorth: ( buttonRect, panelRect ) => ( {
-		top: buttonRect.top - panelRect.height,
+		top: buttonRect.top - panelRect.height + buttonRect.height,
 		left: buttonRect.left - panelRect.width + NESTED_PANEL_HORIZONTAL_OFFSET,
 		name: 'wn'
 	} )

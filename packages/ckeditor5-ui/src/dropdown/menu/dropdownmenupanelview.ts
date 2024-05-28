@@ -7,67 +7,17 @@
  * @module ui/dropdown/menu/dropdownmenupanelview
  */
 
-import { toUnit, type Locale } from '@ckeditor/ckeditor5-utils';
-
+import type { Locale } from '@ckeditor/ckeditor5-utils';
 import type { FocusableView } from '../../focuscycler.js';
-import type ViewCollection from '../../viewcollection.js';
 
-import View from '../../view.js';
+import BalloonPanelView from '../../panel/balloon/balloonpanelview.js';
 
 import '../../../theme/components/dropdown/menu/dropdownmenupanel.css';
-
-const toPx = /* #__PURE__ */ toUnit( 'px' );
 
 /**
  * Represents the view for the dropdown menu panel.
  */
-export default class DropdownMenuPanelView extends View implements FocusableView {
-	/**
-	 * Collection of the child views in this panel.
-	 */
-	public readonly children: ViewCollection<FocusableView>;
-
-	/**
-	 * Controls whether the panel is visible.
-	 *
-	 * @observable
-	 */
-	declare public isVisible: boolean;
-
-	/**
-	 * The name of the position of the panel, relative to the parent.
-	 *
-	 * This property is reflected in the CSS class suffix set to {@link #element} that controls
-	 * the position of the panel.
-	 *
-	 * @observable
-	 * @default 'se'
-	 */
-	declare public position: DropdownMenuPanelPosition;
-
-	/**
-	 * The absolute top position of the menu panel in pixels.
-	 *
-	 * @observable
-	 * @default 0
-	 */
-	declare public top: number;
-
-	/**
-	 * The absolute left position of the menu panel in pixels.
-	 *
-	 * @observable
-	 * @default 0
-	 */
-	declare public left: number;
-
-	/**
-	 * An additional CSS class added to the {@link #element}.
-	 *
-	 * @observable
-	 */
-	public declare class: string | null;
-
+export default class DropdownMenuPanelView extends BalloonPanelView implements FocusableView {
 	/**
 	 * Creates an instance of the menu panel view.
 	 *
@@ -86,9 +36,7 @@ export default class DropdownMenuPanelView extends View implements FocusableView
 			left: 0
 		} );
 
-		this.children = this.createCollection();
-
-		this.setTemplate( {
+		this.extendTemplate( {
 			tag: 'div',
 
 			attributes: {
@@ -100,14 +48,8 @@ export default class DropdownMenuPanelView extends View implements FocusableView
 					bind.to( 'position', value => `ck-dropdown-menu__menu__panel_position_${ value }` ),
 					bind.if( 'isVisible', 'ck-hidden', value => !value )
 				],
-				tabindex: '-1',
-				style: {
-					top: bind.to( 'top', toPx ),
-					left: bind.to( 'left', toPx )
-				}
+				tabindex: '-1'
 			},
-
-			children: this.children,
 
 			on: {
 				// Drag and drop in the panel should not break the selection in the editor.
@@ -129,11 +71,13 @@ export default class DropdownMenuPanelView extends View implements FocusableView
 	 * @param direction The direction to focus. Default is `1`.
 	 */
 	public focus( direction: -1 | 1 = 1 ): void {
-		if ( this.children.length ) {
+		const { content } = this;
+
+		if ( content.length ) {
 			if ( direction === 1 ) {
-				this.children.first!.focus();
+				( content.first as FocusableView ).focus();
 			} else {
-				this.children.last!.focus();
+				( content.last as FocusableView ).focus();
 			}
 		}
 	}
