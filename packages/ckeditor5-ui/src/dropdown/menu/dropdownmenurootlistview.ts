@@ -104,7 +104,7 @@ export default class DropdownMenuRootListView extends DropdownMenuListView {
 	 *
 	 * @observable
 	 */
-	private readonly _menuPanelClass: string | null;
+	private readonly _menuPanelClass: string | undefined;
 
 	/**
 	 * The cached array of all menus in the dropdown menu.
@@ -144,7 +144,7 @@ export default class DropdownMenuRootListView extends DropdownMenuListView {
 		} );
 
 		this.editor = editor;
-		this._menuPanelClass = menuPanelClass || null;
+		this._menuPanelClass = menuPanelClass;
 		this._lazyInitializeSubMenus = !!lazyInitializeSubMenus;
 
 		this._setupIsOpenUpdater();

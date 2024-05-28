@@ -28,8 +28,8 @@ describe( 'DropdownMenuPanelView', () => {
 	} );
 
 	describe( 'constructor()', () => {
-		it( 'should have #children view collection', () => {
-			expect( panelView.children ).to.be.instanceOf( ViewCollection );
+		it( 'should have #content view collection', () => {
+			expect( panelView.content ).to.be.instanceOf( ViewCollection );
 
 			const view = new View();
 
@@ -37,7 +37,7 @@ describe( 'DropdownMenuPanelView', () => {
 			view.render();
 
 			panelView.render();
-			panelView.children.add( view );
+			panelView.content.add( view );
 
 			expect( panelView.element.firstChild ).to.equal( view.element );
 		} );
@@ -99,7 +99,7 @@ describe( 'DropdownMenuPanelView', () => {
 				panelView.element.dispatchEvent( selectStartEvent );
 				sinon.assert.calledOnce( spy );
 
-				panelView.children.add( labeledInput );
+				panelView.content.add( labeledInput );
 
 				labeledInput.fieldView.element.dispatchEvent( selectStartEvent );
 				sinon.assert.calledOnce( spy );
@@ -111,7 +111,7 @@ describe( 'DropdownMenuPanelView', () => {
 				const firstChildView = new View();
 				const lastChildView = new View();
 
-				panelView.children.addMany( [ firstChildView, lastChildView ] );
+				panelView.content.addMany( [ firstChildView, lastChildView ] );
 
 				firstChildView.focus = sinon.spy();
 				lastChildView.focus = sinon.spy();
@@ -126,7 +126,7 @@ describe( 'DropdownMenuPanelView', () => {
 				const firstChildView = new View();
 				const lastChildView = new View();
 
-				panelView.children.addMany( [ firstChildView, lastChildView ] );
+				panelView.content.addMany( [ firstChildView, lastChildView ] );
 
 				firstChildView.focus = sinon.spy();
 				lastChildView.focus = sinon.spy();

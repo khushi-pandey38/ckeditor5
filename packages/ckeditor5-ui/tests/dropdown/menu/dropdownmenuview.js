@@ -193,25 +193,17 @@ describe( 'DropdownMenuView', () => {
 				expect( menuView.panelView.position ).to.equal( newPositionName );
 			} );
 
-			it( 'should use the null position if none were considered optimal (because off the viewport, etc.)', () => {
-				sinon.stub( DropdownMenuView, '_getOptimalPosition' ).returns( null );
-
-				menuView.render();
-				menuView.panelView.position = null;
-				menuView.isOpen = true;
-
-				expect( menuView.panelView.position ).to.be.null;
-			} );
-
 			describe( 'when the UI language is LTR', () => {
 				it( 'should use a specific set of positioning functions in a specific priority order', () => {
-					const spy = sinon.spy( DropdownMenuView, '_getOptimalPosition' );
 					const locale = new Locale( { uiLanguage: 'pl' } );
 
 					createSubMenuWithLocale( locale );
 
+					const spy = sinon.spy( menuView.panelView, 'pin' );
+
 					menuView.isOpen = true;
 
+					expect( spy ).to.be.calledOnce;
 					expect( spy.firstCall.args[ 0 ].positions ).to.have.ordered.members( [
 						DropdownMenuViewPanelPositioningFunctions.eastSouth,
 						DropdownMenuViewPanelPositioningFunctions.eastNorth,
@@ -223,10 +215,11 @@ describe( 'DropdownMenuView', () => {
 
 			describe( 'when the UI language is RTL', () => {
 				it( 'should use a specific set of positioning functions in a specific priority order', () => {
-					const spy = sinon.spy( DropdownMenuView, '_getOptimalPosition' );
 					const locale = new Locale( { uiLanguage: 'ar' } );
 
 					createSubMenuWithLocale( locale );
+
+					const spy = sinon.spy( menuView.panelView, 'pin' );
 
 					menuView.isOpen = true;
 
