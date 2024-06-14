@@ -81,6 +81,7 @@ export {
 } from './collection.js';
 export { default as first } from './first.js';
 export { default as FocusTracker } from './focustracker.js';
+export { default as KeyboardFocusTracker } from './keyboardfocustracker.js';
 export { default as KeystrokeHandler } from './keystrokehandler.js';
 export { default as toArray, type ArrayOrItem, type ReadonlyArrayOrItem } from './toarray.js';
 export { default as toMap } from './tomap.js';

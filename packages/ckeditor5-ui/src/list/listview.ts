@@ -18,6 +18,7 @@ import ViewCollection from '../viewcollection.js';
 
 import {
 	FocusTracker,
+	KeyboardFocusTracker,
 	KeystrokeHandler,
 	type Locale,
 	type GetCallback,
@@ -48,6 +49,11 @@ export default class ListView extends View<HTMLUListElement> implements Dropdown
 	public readonly focusTracker: FocusTracker;
 
 	/**
+	 * Tracks information about DOM being focused using the keyboard.
+	 */
+	public readonly keyboardFocusTracker: KeyboardFocusTracker;
+
+	/**
 	 * Instance of the {@link module:utils/keystrokehandler~KeystrokeHandler}.
 	 */
 	public readonly keystrokes: KeystrokeHandler;
@@ -74,6 +80,14 @@ export default class ListView extends View<HTMLUListElement> implements Dropdown
 	declare public role: string | undefined;
 
 	/**
+	 * Indicates whether the focus on the list view is obtained using the keyboard.
+	 *
+	 * @internal
+	 * @observable
+	 */
+	declare public _isFocusedUsingKeyboard: boolean;
+
+	/**
 	 * Helps cycling over focusable {@link #items} in the list.
 	 */
 	private readonly _focusCycler: FocusCycler;
@@ -95,6 +109,7 @@ export default class ListView extends View<HTMLUListElement> implements Dropdown
 		this.focusables = new ViewCollection();
 		this.items = this.createCollection();
 		this.focusTracker = new FocusTracker();
+		this.keyboardFocusTracker = new KeyboardFocusTracker( this.focusTracker );
 		this.keystrokes = new KeystrokeHandler();
 
 		this._focusCycler = new FocusCycler( {
@@ -114,6 +129,9 @@ export default class ListView extends View<HTMLUListElement> implements Dropdown
 		this.set( 'ariaLabelledBy', undefined );
 		this.set( 'role', undefined );
 
+		this.set( '_isFocusedUsingKeyboard', false );
+		this.bind( '_isFocusedUsingKeyboard' ).to( this.keyboardFocusTracker, 'isFocusedUsingKeyboard' );
+
 		this.setTemplate( {
 			tag: 'ul',
 
@@ -121,7 +139,8 @@ export default class ListView extends View<HTMLUListElement> implements Dropdown
 				class: [
 					'ck',
 					'ck-reset',
-					'ck-list'
+					'ck-list',
+					bind.if( '_isFocusedUsingKeyboard', 'ck-list_keyboard-focused' )
 				],
 				role: bind.to( 'role' ),
 				'aria-label': bind.to( 'ariaLabel' ),
@@ -176,6 +195,7 @@ export default class ListView extends View<HTMLUListElement> implements Dropdown
 		super.destroy();
 
 		this.focusTracker.destroy();
+		this.keyboardFocusTracker.destroy();
 		this.keystrokes.destroy();
 	}
 

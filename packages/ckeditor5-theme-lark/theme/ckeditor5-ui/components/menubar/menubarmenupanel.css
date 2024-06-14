@@ -5,6 +5,7 @@
 
 @import "../../../mixins/_rounded.css";
 @import "../../../mixins/_shadow.css";
+@import "../../../mixins/_focus.css";
 
 :root {
 	--ck-menu-bar-menu-panel-max-width: 75vw;
@@ -43,5 +44,23 @@
 
 	&:focus {
 		outline: none;
+	}
+}
+
+.ck.ck-menu-bar__menu__panel .ck-list {
+	& .ck.ck-list-item-button {
+		&:focus,
+		&:active {
+			border-color: transparent;
+			box-shadow: none;
+		}
+	}
+
+	&.ck-list_keyboard-focused .ck.ck-list-item-button {
+		&:focus,
+		&:active {
+			@mixin ck-focus-ring;
+			@mixin ck-box-shadow var(--ck-focus-outer-shadow);
+		}
 	}
 }

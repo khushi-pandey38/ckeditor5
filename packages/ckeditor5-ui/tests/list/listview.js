@@ -5,6 +5,7 @@
 
 /* global document */
 
+import { KeyboardFocusTracker } from '@ckeditor/ckeditor5-utils';
 import ViewCollection from '../../src/viewcollection.js';
 import ListView from '../../src/list/listview.js';
 import KeystrokeHandler from '@ckeditor/ckeditor5-utils/src/keystrokehandler.js';
@@ -52,6 +53,18 @@ describe( 'ListView', () => {
 
 		it( 'creates #_focusCycler instance', () => {
 			expect( view._focusCycler ).to.be.instanceOf( FocusCycler );
+		} );
+
+		it( 'creates #keyboardFocusTracker instance', () => {
+			expect( view.keyboardFocusTracker ).to.be.instanceOf( KeyboardFocusTracker );
+		} );
+
+		it( 'should bind `ck-list_keyboard-focused` class to the element', () => {
+			expect( view.element.classList.contains( 'ck-list_keyboard-focused' ) ).to.be.false;
+
+			view.keyboardFocusTracker.isFocusedUsingKeyboard = true;
+
+			expect( view.element.classList.contains( 'ck-list_keyboard-focused' ) ).to.be.true;
 		} );
 	} );
 

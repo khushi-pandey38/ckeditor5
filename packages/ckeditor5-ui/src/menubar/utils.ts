@@ -216,7 +216,10 @@ export const MenuBarMenuBehaviors = {
 	openOnButtonClick( menuView: MenuBarMenuView ): void {
 		menuView.buttonView.on<ButtonExecuteEvent>( 'execute', () => {
 			menuView.isOpen = true;
-			menuView.panelView.focus();
+
+			if ( menuView.parentMenuView ) {
+				menuView.panelView.focus();
+			}
 		} );
 	},
 
@@ -226,10 +229,6 @@ export const MenuBarMenuBehaviors = {
 	toggleOnButtonClick( menuView: MenuBarMenuView ): void {
 		menuView.buttonView.on<ButtonExecuteEvent>( 'execute', () => {
 			menuView.isOpen = !menuView.isOpen;
-
-			if ( menuView.isOpen ) {
-				menuView.panelView.focus();
-			}
 		} );
 	},
 

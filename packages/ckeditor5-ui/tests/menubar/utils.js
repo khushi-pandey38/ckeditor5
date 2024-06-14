@@ -942,7 +942,7 @@ describe( 'MenuBarView utils', () => {
 							{
 								label: 'A', isOpen: true, isFocused: false,
 								items: [
-									{ label: 'A#1', isFocused: true }
+									{ label: 'A#1', isFocused: false }
 								]
 							}
 
