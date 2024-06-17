@@ -64,7 +64,7 @@ export function dumpDropdownMenuTree( tree: Readonly<DropdownMenusViewsTreeNode>
 		Default: {
 			enter: ( { node, parents } ) => {
 				const nesting = '  '.repeat( parents.length );
-				const attributes = node.kind === 'Root' ? '' : formatAttributes( node.search || {} );
+				const attributes = node.kind === 'Root' ? '' : formatAttributes( node.search );
 
 				lastEnteredNode = node;
 				lines.push( `${ nesting }<${ node.kind }${ attributes }>` );

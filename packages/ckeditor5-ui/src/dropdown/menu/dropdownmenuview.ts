@@ -153,12 +153,14 @@ export default class DropdownMenuView extends View implements FocusableView {
 		this.keystrokes = new KeystrokeHandler();
 		this.focusTracker = new FocusTracker();
 
-		this.set( 'isOpen', false );
-		this.set( 'isEnabled', true );
-		this.set( 'panelPosition', 'w' );
-		this.set( 'class', undefined );
-		this.set( 'parentMenuView', null );
-		this.set( 'isPendingLazyInitialization', false );
+		this.set( {
+			isOpen: false,
+			isEnabled: true,
+			panelPosition: 'w',
+			class: undefined,
+			parentMenuView: null,
+			isPendingLazyInitialization: false
+		} );
 
 		this.panelView.content.add( this.listView );
 		this.panelView.render();
