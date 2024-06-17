@@ -14,6 +14,7 @@ import {
 } from '@ckeditor/ckeditor5-utils';
 
 import { createMockMenuDefinition } from './_utils/dropdowntreemock.js';
+import { Dump } from './_utils/dropdowntreemenudump.js';
 
 import DropdownMenuButtonView from '../../../src/dropdown/menu/dropdownmenubuttonview.js';
 import DropdownMenuPanelView from '../../../src/dropdown/menu/dropdownmenupanelview.js';
@@ -21,9 +22,6 @@ import { DropdownMenuView } from '../../../src/index.js';
 import { DropdownMenuBehaviors } from '../../../src/dropdown/menu/utils/dropdownmenubehaviors.js';
 import { DropdownMenuViewPanelPositioningFunctions } from '../../../src/dropdown/menu/utils/dropdownmenupositioningfunctions.js';
 import { DropdownMenuListDefinitionFactory } from '../../../src/dropdown/menu/definition/dropdownmenulistdefinitionfactory.js';
-import { dumpDropdownMenuTree } from '../../../src/dropdown/menu/search/dumpdropdownmenutree.js';
-import { createTreeFromDropdownMenuView } from '../../../src/dropdown/menu/search/createtreefromdropdownmenuview.js';
-import { Dump } from './_utils/dropdowntreemenudump.js';
 
 describe( 'DropdownMenuView', () => {
 	let menuView, element, editor, parentMenuView;
