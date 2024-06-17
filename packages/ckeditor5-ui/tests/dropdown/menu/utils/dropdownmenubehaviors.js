@@ -115,7 +115,7 @@ describe( 'Menu Behaviors', () => {
 				);
 
 				menuInstance.menuItems.add( nestedMenuListItem );
-				rootListView.appendMenuChildren(
+				rootListView.factory.appendMenuChildrenAt(
 					[ menuInstance ],
 					treeNodeByLabel( 'Menu 2' ).menu
 				);
@@ -128,7 +128,7 @@ describe( 'Menu Behaviors', () => {
 
 			it( 'should focus hovered item only if any other menu was open and it\'s listView had focus', () => {
 				otherMenu.isOpen = true;
-				rootListView.appendMenuChildren(
+				rootListView.factory.appendMenuChildrenAt(
 					[
 						new DropdownMenuListItemButtonView( editor.locale, 'Foo' )
 					],
@@ -155,7 +155,7 @@ describe( 'Menu Behaviors', () => {
 
 			it( 'should focus hovered item only if any other menu was open and it had focus', () => {
 				otherMenu.isOpen = true;
-				rootListView.appendMenuChildren(
+				rootListView.factory.appendMenuChildrenAt(
 					[
 						new DropdownMenuListItemButtonView( editor.locale, 'Foo' )
 					],

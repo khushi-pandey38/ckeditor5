@@ -7,49 +7,28 @@
  * @module ui/dropdown/menu/dropdownmenurootlistview
  */
 
-import { once } from 'lodash-es';
-
 import {
-	CKEditorError,
 	rejectFalsyItems,
-	type ObservableChangeEvent,
 	type CollectionAddEvent
 } from '@ckeditor/ckeditor5-utils';
 
-import type {
-	DropdownMenuDefinitions,
-	DropdownMenuChildDefinition,
-	DropdownMenuChildrenDefinition,
-	DropdownMenuDefinition
-} from './definition/dropdownmenudefinitiontypings.js';
-
-import DropdownMenuListView from './dropdownmenulistview.js';
-
-import type { Editor, NonEmptyArray } from '@ckeditor/ckeditor5-core';
-import type {
-	DropdownMenuFocusableView,
-	DropdownNestedMenuListItemView
-} from './typings.js';
-
+import type DropdownMenuListItemView from './dropdownmenulistitemview.js';
+import type { Editor } from '@ckeditor/ckeditor5-core';
+import type { DropdownMenuDefinitions } from './definition/dropdownmenudefinitiontypings.js';
 import type { DropdownMenuViewsRootTree } from './search/tree/dropdownsearchtreetypings.js';
 import type {
 	DropdownMenuExecuteItemEvent,
 	DropdownMenuChangeIsOpenEvent,
-	DropdownMenuSubmenuChangeEvent,
-	DropdownMenuPreloadAllEvent
+	DropdownMenuSubmenuChangeEvent
 } from './events.js';
 
-import DropdownMenuListItemView from './dropdownmenulistitemview.js';
-import { isDropdownMenuObjectDefinition } from './definition/dropdownmenudefinitionguards.js';
+import DropdownMenuListView from './dropdownmenulistview.js';
 import { createTreeFromDropdownMenuView } from './search/createtreefromdropdownmenuview.js';
 
+import { DropdownMenuListDefinitionFactory } from './definition/dropdownmenulistdefinitionfactory.js';
 import { DropdownRootMenuBehaviors } from './utils/dropdownmenubehaviors.js';
 import DropdownMenuView from './dropdownmenuview.js';
-import {
-	isDropdownListItemSeparatorView,
-	isDropdownMenuListItemView,
-	isDropdownMenuView
-} from './guards.js';
+import { isDropdownMenuView } from './guards.js';
 
 import { dumpDropdownMenuTree } from './search/dumpdropdownmenutree.js';
 import { flattenDropdownMenuTree } from './search/flattendropdownmenutree.js';
@@ -80,14 +59,6 @@ import {
  * ] );
  *
  * view.render();
- *
- * // Somewhere later in the code:
- * view.appendTopLevelChild( {
- * 	menu: 'Menu 2',
- * 	children: [
- * 		new DropdownMenuListItemButtonView( locale, 'Item 2' )
- * 	]
- * } );
  * ```
  */
 export default class DropdownMenuRootListView extends DropdownMenuListView {
@@ -112,15 +83,11 @@ export default class DropdownMenuRootListView extends DropdownMenuListView {
 	private _cachedMenus: Array<DropdownMenuView> | null = null;
 
 	/**
-	 * Indicates whether the dropdown menu should be lazily initialized.
-	 * If set to `true`, the dropdown menu will not be rendered until clicked.
-	 */
-	private readonly _lazyInitializeSubMenus: boolean;
-
-	/**
 	 * The editor instance associated with the dropdown menu root list view.
 	 */
 	public readonly editor: Editor;
+
+	public readonly factory: DropdownMenuListDefinitionFactory;
 
 	/**
 	 * Creates an instance of the DropdownMenuRootListView class.
@@ -144,14 +111,18 @@ export default class DropdownMenuRootListView extends DropdownMenuListView {
 		} );
 
 		this.editor = editor;
-		this._menuPanelClass = menuPanelClass;
-		this._lazyInitializeSubMenus = !!lazyInitializeSubMenus;
+		this.factory = new DropdownMenuListDefinitionFactory( {
+			createMenuViewInstance: ( ...args ) => new DropdownMenuView( editor, ...args ),
+			listView: this,
+			lazyInitializeSubMenus
+		} );
 
+		this._menuPanelClass = menuPanelClass;
 		this._setupIsOpenUpdater();
 		this._watchRootMenuEvents();
 
 		if ( definitions && definitions.length ) {
-			this.appendTopLevelChildren( definitions );
+			this.factory.appendChildren( definitions );
 		}
 	}
 
@@ -207,26 +178,6 @@ export default class DropdownMenuRootListView extends DropdownMenuListView {
 	}
 
 	/**
-	 * Gets the tree representation of the dropdown menu views.
-	 *
-	 * @returns The tree representation of the dropdown menu views.
-	 */
-	public get tree(): DropdownMenuViewsRootTree {
-		return createTreeFromDropdownMenuView( {
-			menuItems: [ ...this.items ]
-		} );
-	}
-
-	/**
-	 * Dumps the dropdown menu tree to a string.
-	 *
-	 * 	* It does not display not initialized menus.
-	 */
-	public dump(): string {
-		return dumpDropdownMenuTree( this.tree );
-	}
-
-	/**
 	 * Closes all menus.
 	 */
 	public close(): void {
@@ -241,7 +192,9 @@ export default class DropdownMenuRootListView extends DropdownMenuListView {
 	 * 	* It's helpful used together with some search functions where menu must be preloaded before searching.
 	 */
 	public preloadAllMenus(): void {
-		this.fire<DropdownMenuPreloadAllEvent>( 'menu:preload:all' );
+		this.menus.forEach( menuView => {
+			menuView.isPendingLazyInitialization = false;
+		} );
 	}
 
 	/**
@@ -251,173 +204,6 @@ export default class DropdownMenuRootListView extends DropdownMenuListView {
 	 */
 	public walk( walkers: DropdownMenuViewsTreeWalkers ): void {
 		walkOverDropdownMenuTreeItems( walkers, this.tree );
-	}
-
-	/**
-	 * Appends multiple menus to the dropdown menu definition parser.
-	 *
-	 * 	* It will initialize all menus that are not lazy-loaded.
-	 *
-	 * @param items An array of `DropdownMenuDefinition` objects representing the menus to be appended.
-	 * @returns Inserted menu list item views.
-	 */
-	public appendTopLevelChildren( items: DropdownMenuChildrenDefinition ): Array<DropdownNestedMenuListItemView> {
-		this.preloadAllMenus();
-
-		return this.appendMenuChildren( items );
-	}
-
-	/**
-	 * Appends a menu to the dropdown menu definition parser.
-	 *
-	 * @param menuDefinition The menu definition to append.
-	 * @returns Inserted menu list item view.
-	 */
-	public appendTopLevelChild( children: DropdownMenuChildDefinition ): DropdownNestedMenuListItemView {
-		return this.appendTopLevelChildren( [ children ] )[ 0 ]!;
-	}
-
-	/**
-	 * Appends menu children to the target parent menu view.
-	 *
-	 * @param children The children to be appended to the menu.
-	 * @param targetParentMenuView The target parent menu view.
-	 * @param index The index at which the children should be inserted.
-	 * @returns Array of inserted items.
-	 */
-	public appendMenuChildren(
-		children: DropdownMenuChildrenDefinition,
-		targetParentMenuView: DropdownMenuView | null = null,
-		index?: number
-	): Array<DropdownNestedMenuListItemView> {
-		const menuListItems = children.flatMap( ( itemDefinition ): NonEmptyArray<DropdownNestedMenuListItemView> => {
-			// Register non-focusable items such like separators firstly.
-			if ( isDropdownListItemSeparatorView( itemDefinition ) ) {
-				return [
-					itemDefinition
-				];
-			}
-
-			// Register focusable items like menu buttons or menus.
-			const menuOrFlatItem = this._createFocusableDefinitionChild(
-				itemDefinition,
-				targetParentMenuView
-			);
-
-			return [
-				new DropdownMenuListItemView( this.locale!, targetParentMenuView, menuOrFlatItem )
-			];
-		} );
-
-		if ( targetParentMenuView ) {
-			if ( targetParentMenuView.pendingLazyInitialization ) {
-				/**
-				 * Attended to append menu entry to the lazy-initialized menu.
-				 *
-				 * @error dropdown-menu-append-to-lazy-initialized-menu
-				 */
-				throw new CKEditorError( 'dropdown-menu-append-to-lazy-initialized-menu' );
-			}
-
-			targetParentMenuView.listView.items.addMany( menuListItems, index );
-		} else {
-			this.items.addMany( menuListItems, index );
-		}
-
-		return menuListItems;
-	}
-
-	/**
-	 * Registers a child definition in the dropdown menu.
-	 *
-	 * @param child The child definition to register.
-	 * @param parentMenuView The parent menu view.
-	 * @returns The registered menu or reused instance.
-	 */
-	private _createFocusableDefinitionChild(
-		child: DropdownMenuChildDefinition,
-		parentMenuView: DropdownMenuView | null
-	) {
-		if ( isDropdownMenuObjectDefinition( child ) ) {
-			return this._createMenuFromObjectDefinition( child, parentMenuView );
-		}
-
-		return this._recursiveAssignMenuChildrenParents( child, parentMenuView );
-	}
-
-	/**
-	 * Creates a menu view from the given menu definition.
-	 *
-	 * @param menuDefinition The dropdown menu definition.
-	 * @returns The created menu view.
-	 */
-	private _createMenuFromObjectDefinition(
-		menuDefinition: DropdownMenuDefinition,
-		parentMenuView: DropdownMenuView | null
-	) {
-		const { children, menu } = menuDefinition;
-		const menuView = new DropdownMenuView( this.editor, menu, parentMenuView );
-
-		if ( this._lazyInitializeSubMenus ) {
-			// Prepend the first item to the menu and append the rest after opening menu.
-			//
-			// Appending such item is crucial because `.filter()` method in some of the `FilterView` implementations
-			// may require at least one item to be present in the menu. If there are no items, these views often
-			// display "No found items" placeholders which is not true because there are views in menus that are still
-			// not rendered.
-			const totalPrependedItems = 1;
-			const [ lazyAdded, rest ] = [
-				children.slice( 0, totalPrependedItems ),
-				children.slice( totalPrependedItems )
-			];
-
-			const initializeRestOfItems = once( () => {
-				menuView.pendingLazyInitialization = false;
-				this.appendMenuChildren( rest, menuView );
-			} );
-
-			menuView.once<ObservableChangeEvent<boolean>>( 'change:isOpen', ( _, isOpen ) => {
-				if ( isOpen ) {
-					initializeRestOfItems();
-				}
-			} );
-
-			this.once<DropdownMenuPreloadAllEvent>( 'menu:preload:all', initializeRestOfItems );
-			this.appendMenuChildren( lazyAdded, menuView );
-
-			menuView.pendingLazyInitialization = true;
-		} else {
-			this.appendMenuChildren( children, menuView );
-		}
-
-		return menuView;
-	}
-
-	/**
-	 * Registers a menu tree from the given component view definition.
-	 *
-	 * @param menuOrFlatItemView The component view definition.
-	 * @param parentMenuView The parent menu view.
-	 * @returns The registered component view.
-	 */
-	private _recursiveAssignMenuChildrenParents(
-		menuOrFlatItemView: DropdownMenuFocusableView,
-		parentMenuView: DropdownMenuView | null
-	) {
-		// Register menu entries.
-		if ( isDropdownMenuView( menuOrFlatItemView ) ) {
-			menuOrFlatItemView.parentMenuView = parentMenuView;
-			menuOrFlatItemView.menuItems.forEach( menuListItem => {
-				if ( isDropdownMenuListItemView( menuListItem ) && isDropdownMenuView( menuListItem.flatItemOrNestedMenuView ) ) {
-					this._recursiveAssignMenuChildrenParents(
-						menuListItem.flatItemOrNestedMenuView,
-						menuOrFlatItemView
-					);
-				}
-			} );
-		}
-
-		return menuOrFlatItemView;
 	}
 
 	/**

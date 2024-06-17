@@ -64,7 +64,7 @@ describe( 'createTreeFromDropdownMenuView', () => {
 		const menuRootList = createBlankRootListView( editor );
 		const menuInstance = new DropdownMenuView( editor, 'Hello World' );
 
-		menuRootList.appendTopLevelChild(
+		menuRootList.factory.appendChild(
 			{
 				menu: 'Menu Root',
 				children: [ menuInstance ]
@@ -92,14 +92,14 @@ describe( 'createTreeFromDropdownMenuView', () => {
 			new DropdownMenuListItemButtonView( locale, 'World' )
 		];
 
-		menuRootList.appendTopLevelChild(
+		menuRootList.factory.appendChild(
 			{
 				menu: 'Menu Root',
 				children: [ menuInstance ]
 			}
 		);
 
-		menuRootList.appendMenuChildren( nestedEntries, menuInstance );
+		menuRootList.factory.appendMenuChildrenAt( nestedEntries, menuInstance );
 
 		const tree = createTreeFromDropdownMenuView( {
 			menuItems: [ ...menuRootList.items ]

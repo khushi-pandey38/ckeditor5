@@ -52,10 +52,6 @@ describe( 'DropdownMenuListFilteredView', () => {
 		it( 'should not create found list view instance', () => {
 			expect( listView._foundListView ).to.be.null;
 		} );
-
-		it( 'should not initialize menu view with lazy initialization flag', () => {
-			expect( listView._menuView._lazyInitializeSubMenus ).to.be.false;
-		} );
 	} );
 
 	describe( 'focus()', () => {
@@ -185,7 +181,7 @@ describe( 'DropdownMenuListFilteredView', () => {
 	}
 
 	function appendMockedMenu() {
-		listView.menuView.appendTopLevelChildren(
+		listView.menuView.factory.appendChildren(
 			[
 				createMockMenuDefinition(),
 				new DropdownMenuListItemButtonView( locale, 'Garlic' ),

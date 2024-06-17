@@ -7,11 +7,7 @@
  * @module ui/dropdown/menu/search/dumpdropdownmenutree
  */
 
-import type {
-	DropdownMenuViewsRootTree,
-	DropdownMenusViewsTreeNode
-} from './tree/dropdownsearchtreetypings.js';
-
+import type { DropdownMenusViewsTreeNode } from './tree/dropdownsearchtreetypings.js';
 import { walkOverDropdownMenuTreeItems } from './walkoverdropdownmenutreeitems.js';
 
 /**
@@ -54,7 +50,7 @@ import { walkOverDropdownMenuTreeItems } from './walkoverdropdownmenutreeitems.j
  * @param tree The dropdown menu tree to dump.
  * @returns The string representation of the dropdown menu tree.
  */
-export function dumpDropdownMenuTree( tree: Readonly<DropdownMenuViewsRootTree> ): string {
+export function dumpDropdownMenuTree( tree: Readonly<DropdownMenusViewsTreeNode> ): string {
 	const lines: Array<string> = [];
 	let lastEnteredNode: DropdownMenusViewsTreeNode | null = null;
 
@@ -68,13 +64,13 @@ export function dumpDropdownMenuTree( tree: Readonly<DropdownMenuViewsRootTree> 
 		Default: {
 			enter: ( { node, parents } ) => {
 				const nesting = '  '.repeat( parents.length );
-				const attributes = node.kind === 'Root' ? '' : formatAttributes( node.search );
+				const attributes = node.kind === 'Root' ? '' : formatAttributes( node.search || {} );
 
 				lastEnteredNode = node;
 				lines.push( `${ nesting }<${ node.kind }${ attributes }>` );
 
 				// Skip walking into not initialized menus.
-				if ( node.kind === 'Menu' && node.menu.pendingLazyInitialization ) {
+				if ( node.kind === 'Menu' && node.menu.isPendingLazyInitialization ) {
 					return false;
 				}
 			},

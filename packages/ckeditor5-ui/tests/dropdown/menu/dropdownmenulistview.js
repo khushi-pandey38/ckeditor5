@@ -3,19 +3,36 @@
  * For licensing, see LICENSE.md or https://ckeditor.com/legal/ckeditor-oss-license
  */
 
-import { ListView, DropdownMenuListView } from '../../../src/index.js';
-import { createMockLocale } from './_utils/dropdowntreemock.js';
+/* global document */
+
+import ClassicTestEditor from '@ckeditor/ckeditor5-core/tests/_utils/classictesteditor.js';
+import { DropdownMenuListDefinitionFactory } from '../../../src/dropdown/menu/definition/dropdownmenulistdefinitionfactory.js';
+import { ListView, DropdownMenuListView, DropdownMenuView } from '../../../src/index.js';
+
+import { createMockLocale, createMockMenuDefinition } from './_utils/dropdowntreemock.js';
+import { Dump } from './_utils/dropdowntreemenudump.js';
+import { createRootTree, mapButtonViewToFlatMenuTreeItemByLabel, mapMenuViewToMenuTreeItemByLabel } from './_utils/dropdowntreeutils.js';
 
 describe( 'DropdownMenuListView', () => {
-	let listView, locale;
+	let listView, locale, element, editor, factory;
 
-	beforeEach( () => {
+	beforeEach( async () => {
+		element = document.createElement( 'div' );
+		document.body.appendChild( element );
+		editor = await ClassicTestEditor.create( element );
+
 		locale = createMockLocale();
 		listView = new DropdownMenuListView( locale );
+		factory = new DropdownMenuListDefinitionFactory( {
+			createMenuViewInstance: ( ...args ) => new DropdownMenuView( editor, ...args ),
+			listView
+		} );
 	} );
 
-	afterEach( () => {
+	afterEach( async () => {
 		listView.destroy();
+		await editor.destroy();
+		element.remove();
 	} );
 
 	describe( 'constructor()', () => {
@@ -25,6 +42,43 @@ describe( 'DropdownMenuListView', () => {
 
 		it( 'should have #role set', () => {
 			expect( listView.role ).to.equal( 'menu' );
+		} );
+	} );
+
+	describe( 'dump()', () => {
+		it( 'should dump tree of items', () => {
+			factory.appendChildren( [ createMockMenuDefinition() ] );
+			expect( listView.dump() ).to.be.equal(
+				Dump.root( [
+					Dump.menu( 'Menu 1', [
+						Dump.item( 'Foo' ),
+						Dump.item( 'Bar' ),
+						Dump.item( 'Buz' )
+					] )
+				] )
+			);
+		} );
+	} );
+
+	describe( 'tree()', () => {
+		it( 'should return tree of items', () => {
+			factory.appendChildren( [ createMockMenuDefinition() ] );
+
+			const { tree } = listView;
+
+			expect( tree ).to.be.deep.equal(
+				createRootTree( [
+					mapMenuViewToMenuTreeItemByLabel(
+						'Menu 1',
+						tree,
+						[
+							mapButtonViewToFlatMenuTreeItemByLabel( 'Foo', tree ),
+							mapButtonViewToFlatMenuTreeItemByLabel( 'Bar', tree ),
+							mapButtonViewToFlatMenuTreeItemByLabel( 'Buz', tree )
+						]
+					)
+				] )
+			);
 		} );
 	} );
 } );

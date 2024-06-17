@@ -23,6 +23,7 @@ import {
 	createMockMenuDefinition
 } from './_utils/dropdowntreemock.js';
 
+import { DropdownMenuListDefinitionFactory } from '../../../src/dropdown/menu/definition/dropdownmenulistdefinitionfactory.js';
 import {
 	findMenuTreeMenuViewByLabel,
 	findMenuTreeItemByLabel,
@@ -198,7 +199,7 @@ describe( 'DropdownMenuRootListView', () => {
 				const menuRootList = createBlankRootListView( editor );
 				const menuInstance = new DropdownMenuView( editor, 'Hello World' );
 
-				menuRootList.appendTopLevelChild(
+				menuRootList.factory.appendChild(
 					{
 						menu: 'Menu Root',
 						children: [ menuInstance ]
@@ -222,7 +223,7 @@ describe( 'DropdownMenuRootListView', () => {
 					new DropdownMenuListItemView( editor.locale, menuInstance, nestedMenuInstance )
 				);
 
-				menuRootList.appendTopLevelChild(
+				menuRootList.factory.appendChild(
 					{
 						menu: 'Menu Root',
 						children: [ menuInstance ]
@@ -281,7 +282,7 @@ describe( 'DropdownMenuRootListView', () => {
 			expect( menus ).to.be.equal( 1 );
 		} );
 
-		it( 'should append `menuPanelClass` to every added submenu via appendTopLevelChild()', () => {
+		it( 'should append `menuPanelClass` to every added submenu via appendChildren()', () => {
 			const rootListView = createRootListWithDefinition(
 				[],
 				{
@@ -289,7 +290,7 @@ describe( 'DropdownMenuRootListView', () => {
 				}
 			);
 
-			rootListView.appendTopLevelChildren( [
+			rootListView.factory.appendChildren( [
 				createMockMenuDefinition( 'Menu 1' ),
 				createMockMenuDefinition( 'Menu 2' )
 			] );
@@ -316,7 +317,7 @@ describe( 'DropdownMenuRootListView', () => {
 				}
 			);
 
-			rootListView.appendTopLevelChild(
+			rootListView.factory.appendChild(
 				{
 					menu: 'Menu Root',
 					children: [ new DropdownMenuView( editor, 'Hello World 3' ) ]
@@ -367,136 +368,146 @@ describe( 'DropdownMenuRootListView', () => {
 		} );
 	} );
 
-	describe( 'appendTopLevelChildren()', () => {
-		it( 'should not crash if called with empty array', () => {
-			expect( () => {
+	describe( 'factory', () => {
+		it( 'returns instance of DropdownMenuListDefinitionFactory', () => {
+			expect( rootListView.factory ).to.be.instanceOf( DropdownMenuListDefinitionFactory );
+		} );
+
+		describe( 'appendChildren()', () => {
+			it( 'should not crash if called with empty array', () => {
+				expect( () => {
+					const rootListView = createRootListWithDefinition();
+
+					rootListView.factory.appendChildren( [] );
+				} ).not.to.throw();
+			} );
+
+			it( 'should append top level menus', () => {
 				const rootListView = createRootListWithDefinition();
 
-				rootListView.appendTopLevelChildren( [] );
-			} ).not.to.throw();
+				rootListView.factory.appendChildren( [
+					createMockMenuDefinition( 'Menu 2' ),
+					createMockMenuDefinition( 'Menu 3' )
+				] );
+
+				rootListView.factory.appendChildren( [
+					createMockMenuDefinition( 'Menu 4' )
+				] );
+
+				expect( rootListView.tree.children.map( menu => menu.search.raw ) ).to.be.deep.equal(
+					[ 'Menu 1', 'Menu 2', 'Menu 3', 'Menu 4' ]
+				);
+			} );
 		} );
 
-		it( 'should append top level menus', () => {
-			const rootListView = createRootListWithDefinition();
+		describe( 'appendChild()', () => {
+			it( 'should append top level menu', () => {
+				const rootListView = createRootListWithDefinition( [] );
 
-			rootListView.appendTopLevelChildren( [
-				createMockMenuDefinition( 'Menu 2' ),
-				createMockMenuDefinition( 'Menu 3' )
-			] );
+				rootListView.factory.appendChild( createMockMenuDefinition( 'Menu 1' ) );
+				rootListView.factory.appendChild( createMockMenuDefinition( 'Menu 2' ) );
 
-			rootListView.appendTopLevelChildren( [
-				createMockMenuDefinition( 'Menu 4' )
-			] );
-
-			expect( rootListView.tree.children.map( menu => menu.search.raw ) ).to.be.deep.equal(
-				[ 'Menu 1', 'Menu 2', 'Menu 3', 'Menu 4' ]
-			);
-		} );
-	} );
-
-	describe( 'appendMenuChildren()', () => {
-		it( 'should append flat menu items to the menu', () => {
-			const rootListView = createRootListWithDefinition(
-				{
-					menu: 'Hello World',
-					children: []
-				}
-			);
-
-			rootListView.appendMenuChildren(
-				[
-					new DropdownMenuListItemButtonView( editor.locale, 'Baz' )
-				],
-				findMenuTreeMenuViewByLabel( 'Hello World', rootListView.tree )
-			);
-
-			const insertedChild = findMenuTreeItemByLabel( 'Baz', rootListView.tree.children[ 0 ] );
-
-			expect( insertedChild.search.raw ).to.be.equal( 'Baz' );
+				expect( rootListView.tree.children.map( menu => menu.search.raw ) ).to.be.deep.equal(
+					[ 'Menu 1', 'Menu 2' ]
+				);
+			} );
 		} );
 
-		it( 'should be possible to append list item separator', () => {
-			const rootListView = createRootListWithDefinition(
-				{
-					menu: 'Hello World',
-					children: []
-				}
-			);
+		describe( 'appendMenuChildrenAt()', () => {
+			it( 'should append flat menu items to the menu', () => {
+				const rootListView = createRootListWithDefinition(
+					{
+						menu: 'Hello World',
+						children: []
+					}
+				);
 
-			rootListView.appendMenuChildren(
-				[
-					new ListSeparatorView( editor.locale )
-				],
-				findMenuTreeMenuViewByLabel( 'Hello World', rootListView.tree )
-			);
-
-			const parentMenuView = findMenuTreeMenuViewByLabel( 'Hello World', rootListView.tree );
-
-			expect( parentMenuView.menuItems.get( 0 ) ).to.be.instanceOf( ListSeparatorView );
-		} );
-
-		it( 'should reuse menu view instance on insert', () => {
-			const rootListView = createRootListWithDefinition(
-				{
-					menu: 'Hello World',
-					children: []
-				}
-			);
-
-			const menuInstance = new DropdownMenuView( editor, 'Baz' );
-
-			menuInstance.menuItems.add(
-				new DropdownMenuListItemView(
-					editor.locale,
-					menuInstance,
-					new DropdownMenuView( editor, 'Nested Menu Menu' )
-				)
-			);
-
-			rootListView.appendMenuChildren(
-				[ menuInstance ],
-				findMenuTreeMenuViewByLabel( 'Hello World', rootListView.tree )
-			);
-
-			const insertedChild = findMenuTreeItemByLabel( 'Nested Menu Menu', rootListView.tree );
-
-			expect( insertedChild.search.raw ).to.be.equal( 'Nested Menu Menu' );
-		} );
-
-		it( 'should be not possible to append children to lazy initialized menu', () => {
-			const rootListView = createRootListWithDefinition(
-				{
-					menu: 'Hello World',
-					children: []
-				},
-				{
-					lazyInitializeSubMenus: true
-				}
-			);
-
-			const parentMenuView = findMenuTreeMenuViewByLabel( 'Hello World', rootListView.tree );
-
-			expect( () => {
-				rootListView.appendMenuChildren(
+				rootListView.factory.appendMenuChildrenAt(
 					[
 						new DropdownMenuListItemButtonView( editor.locale, 'Baz' )
 					],
-					parentMenuView
+					findMenuTreeMenuViewByLabel( 'Hello World', rootListView.tree )
 				);
-			} ).to.throw( 'dropdown-menu-append-to-lazy-initialized-menu' );
-		} );
-	} );
 
-	describe( 'appendTopLevelChild()', () => {
-		it( 'should append top level menu', () => {
-			const rootListView = createRootListWithDefinition( [] );
+				const insertedChild = findMenuTreeItemByLabel( 'Baz', rootListView.tree.children[ 0 ] );
 
-			rootListView.appendTopLevelChild( createMockMenuDefinition( 'Menu 1' ) );
-			rootListView.appendTopLevelChild( createMockMenuDefinition( 'Menu 2' ) );
+				expect( insertedChild.search.raw ).to.be.equal( 'Baz' );
+			} );
 
-			expect( rootListView.tree.children.map( menu => menu.search.raw ) ).to.be.deep.equal(
-				[ 'Menu 1', 'Menu 2' ]
-			);
+			it( 'should be possible to append list item separator', () => {
+				const rootListView = createRootListWithDefinition(
+					{
+						menu: 'Hello World',
+						children: []
+					}
+				);
+
+				rootListView.factory.appendMenuChildrenAt(
+					[
+						new ListSeparatorView( editor.locale )
+					],
+					findMenuTreeMenuViewByLabel( 'Hello World', rootListView.tree )
+				);
+
+				const parentMenuView = findMenuTreeMenuViewByLabel( 'Hello World', rootListView.tree );
+
+				expect( parentMenuView.menuItems.get( 0 ) ).to.be.instanceOf( ListSeparatorView );
+			} );
+
+			it( 'should reuse menu view instance on insert', () => {
+				const rootListView = createRootListWithDefinition(
+					{
+						menu: 'Hello World',
+						children: []
+					}
+				);
+
+				const menuInstance = new DropdownMenuView( editor, 'Baz' );
+
+				menuInstance.menuItems.add(
+					new DropdownMenuListItemView(
+						editor.locale,
+						menuInstance,
+						new DropdownMenuView( editor, 'Nested Menu Menu' )
+					)
+				);
+
+				rootListView.factory.appendMenuChildrenAt(
+					[ menuInstance ],
+					findMenuTreeMenuViewByLabel( 'Hello World', rootListView.tree )
+				);
+
+				const insertedChild = findMenuTreeItemByLabel( 'Nested Menu Menu', rootListView.tree );
+
+				expect( insertedChild.search.raw ).to.be.equal( 'Nested Menu Menu' );
+			} );
+
+			it( 'should not be possible to append children to lazy initialized menu', () => {
+				const rootListView = createRootListWithDefinition(
+					{
+						menu: 'Hello World',
+						children: [
+							{
+								menu: 'Nested menu',
+								children: []
+							}
+						]
+					},
+					{
+						lazyInitializeSubMenus: true
+					}
+				);
+
+				const parentMenuView = findMenuTreeMenuViewByLabel( 'Hello World', rootListView.tree );
+
+				expect( () => {
+					parentMenuView.factory.appendChildren(
+						[
+							new DropdownMenuListItemButtonView( editor.locale, 'Baz' )
+						]
+					);
+				} ).to.throw( 'cannot-access-factory-on-lazy-loaded-menu' );
+			} );
 		} );
 	} );
 
@@ -611,7 +622,7 @@ describe( 'DropdownMenuRootListView', () => {
 				const rootListView = createRootListWithDefinition();
 				const oldMenus = rootListView.menus;
 
-				rootListView.appendTopLevelChildren( [
+				rootListView.factory.appendChildren( [
 					createMockMenuDefinition( 'Menu 2' ),
 					createMockMenuDefinition( 'Menu 3' )
 				] );
@@ -623,11 +634,10 @@ describe( 'DropdownMenuRootListView', () => {
 				const rootListView = createRootListWithDefinition();
 				const oldMenus = rootListView.menus;
 
-				rootListView.appendMenuChildren(
+				oldMenus[ 0 ].factory.appendChildren(
 					[
 						new DropdownMenuListItemButtonView( editor.locale, 'Baz' )
-					],
-					findMenuTreeMenuViewByLabel( 'Menu 1', rootListView.tree )
+					]
 				);
 
 				expect( oldMenus ).not.to.be.equal( rootListView.menus );
@@ -651,14 +661,14 @@ describe( 'DropdownMenuRootListView', () => {
 
 			rootListView.walk( {
 				Menu: ( { node } ) => {
-					expect( node.menu.pendingLazyInitialization ).to.be.true;
+					expect( node.menu.isPendingLazyInitialization ).to.be.true;
 				}
 			} );
 
 			rootListView.preloadAllMenus();
 			rootListView.walk( {
 				Menu: ( { node } ) => {
-					expect( node.menu.pendingLazyInitialization ).to.be.false;
+					expect( node.menu.isPendingLazyInitialization ).to.be.false;
 				}
 			} );
 
@@ -679,12 +689,12 @@ describe( 'DropdownMenuRootListView', () => {
 
 			const parentMenuView = findMenuTreeMenuViewByLabel( 'Hello World', rootListView.tree );
 
-			expect( parentMenuView.pendingLazyInitialization ).to.be.true;
+			expect( parentMenuView.isPendingLazyInitialization ).to.be.true;
 			expect( parentMenuView.menuItems.length ).not.to.be.equal( 3 );
 
 			parentMenuView.isOpen = true;
 
-			expect( parentMenuView.pendingLazyInitialization ).to.be.false;
+			expect( parentMenuView.isPendingLazyInitialization ).to.be.false;
 			expect( parentMenuView.menuItems.length ).to.be.equal( 3 );
 		} );
 	} );

@@ -12,7 +12,8 @@ import {
 	KeystrokeHandler,
 	global,
 	type PositioningFunction,
-	type ObservableChangeEvent
+	type ObservableChangeEvent,
+	CKEditorError
 } from '@ckeditor/ckeditor5-utils';
 
 import type { Editor } from '@ckeditor/ckeditor5-core';
@@ -27,6 +28,7 @@ import { DropdownMenuBehaviors } from './utils/dropdownmenubehaviors.js';
 
 import View from '../../view.js';
 import DropdownMenuPanelView, { type DropdownMenuPanelPosition } from './dropdownmenupanelview.js';
+import { DropdownMenuListDefinitionFactory } from './definition/dropdownmenulistdefinitionfactory.js';
 
 import '../../../theme/components/dropdown/menu/dropdownmenu.css';
 
@@ -119,7 +121,7 @@ export default class DropdownMenuView extends View implements FocusableView {
 	 * @observable
 	 * @default false
 	 */
-	declare public pendingLazyInitialization: boolean;
+	declare public isPendingLazyInitialization: boolean;
 
 	/**
 	 * Creates a new instance of the DropdownMenuView class.
@@ -156,7 +158,7 @@ export default class DropdownMenuView extends View implements FocusableView {
 		this.set( 'panelPosition', 'w' );
 		this.set( 'class', undefined );
 		this.set( 'parentMenuView', null );
-		this.set( 'pendingLazyInitialization', false );
+		this.set( 'isPendingLazyInitialization', false );
 
 		this.panelView.content.add( this.listView );
 		this.panelView.render();
@@ -184,6 +186,26 @@ export default class DropdownMenuView extends View implements FocusableView {
 		if ( parentMenuView ) {
 			this.parentMenuView = parentMenuView;
 		}
+	}
+
+	/**
+	 * The factory property returns a `DropdownMenuListDefinitionFactory` instance.
+	 * It creates a factory object that can be used to create instances of `DropdownMenuView`.
+	 */
+	public get factory(): DropdownMenuListDefinitionFactory {
+		if ( this.isPendingLazyInitialization ) {
+			/**
+			 * Access menu factory on lazy menu is not possible.
+			 *
+			 * @error cannot-access-factory-on-lazy-loaded-menu
+			 */
+			throw new CKEditorError( 'cannot-access-factory-on-lazy-loaded-menu' );
+		}
+
+		return new DropdownMenuListDefinitionFactory( {
+			createMenuViewInstance: ( ...args ) => new DropdownMenuView( this.editor, ...args ),
+			listView: this.listView
+		} );
 	}
 
 	/**

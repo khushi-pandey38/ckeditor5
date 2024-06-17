@@ -65,7 +65,7 @@ export function createMockDropdownMenuDefinition( editor, additionalDefinitions 
 		...additionalDefinitions
 	];
 
-	menuRootList.appendTopLevelChildren( menusDefinitions );
+	menuRootList.factory.appendChildren( menusDefinitions );
 
 	return {
 		menuRootList,

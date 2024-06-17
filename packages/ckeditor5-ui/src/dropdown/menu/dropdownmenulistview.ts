@@ -8,8 +8,11 @@
  */
 
 import type { Locale } from '@ckeditor/ckeditor5-utils';
+import type { DropdownMenuViewsRootTree } from './search/tree/dropdownsearchtreetypings.js';
 
 import ListView from '../../list/listview.js';
+import { createTreeFromDropdownMenuView } from './search/createtreefromdropdownmenuview.js';
+import { dumpDropdownMenuTree } from './search/dumpdropdownmenutree.js';
 
 /**
  * Represents a dropdown menu list view.
@@ -41,5 +44,25 @@ export default class DropdownMenuListView extends ListView {
 				]
 			}
 		} );
+	}
+
+	/**
+	 * Gets the tree representation of the dropdown menu views.
+	 *
+	 * @returns The tree representation of the dropdown menu views.
+	 */
+	public get tree(): DropdownMenuViewsRootTree {
+		return createTreeFromDropdownMenuView( {
+			menuItems: [ ...this.items ]
+		} );
+	}
+
+	/**
+	 * Dumps the dropdown menu tree to a string.
+	 *
+	 * 	* It does not display not initialized menus.
+	 */
+	public dump(): string {
+		return dumpDropdownMenuTree( this.tree );
 	}
 }

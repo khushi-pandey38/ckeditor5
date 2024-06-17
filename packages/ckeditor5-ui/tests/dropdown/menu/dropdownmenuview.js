@@ -13,11 +13,17 @@ import {
 	Locale
 } from '@ckeditor/ckeditor5-utils';
 
+import { createMockMenuDefinition } from './_utils/dropdowntreemock.js';
+
 import DropdownMenuButtonView from '../../../src/dropdown/menu/dropdownmenubuttonview.js';
 import DropdownMenuPanelView from '../../../src/dropdown/menu/dropdownmenupanelview.js';
 import { DropdownMenuView } from '../../../src/index.js';
 import { DropdownMenuBehaviors } from '../../../src/dropdown/menu/utils/dropdownmenubehaviors.js';
 import { DropdownMenuViewPanelPositioningFunctions } from '../../../src/dropdown/menu/utils/dropdownmenupositioningfunctions.js';
+import { DropdownMenuListDefinitionFactory } from '../../../src/dropdown/menu/definition/dropdownmenulistdefinitionfactory.js';
+import { dumpDropdownMenuTree } from '../../../src/dropdown/menu/search/dumpdropdownmenutree.js';
+import { createTreeFromDropdownMenuView } from '../../../src/dropdown/menu/search/createtreefromdropdownmenuview.js';
+import { Dump } from './_utils/dropdowntreemenudump.js';
 
 describe( 'DropdownMenuView', () => {
 	let menuView, element, editor, parentMenuView;
@@ -261,6 +267,25 @@ describe( 'DropdownMenuView', () => {
 			menuView.focus();
 
 			sinon.assert.calledOnce( spy );
+		} );
+	} );
+
+	describe( 'factory', () => {
+		it( 'returns instance of DropdownMenuListDefinitionFactory', () => {
+			expect( menuView.factory ).to.be.instanceOf( DropdownMenuListDefinitionFactory );
+		} );
+
+		it( 'should be possible to append menu items using factory', () => {
+			menuView.factory.appendChildren( [ createMockMenuDefinition() ] );
+			expect( menuView.listView.dump() ).to.be.equal(
+				Dump.root( [
+					Dump.menu( 'Menu 1', [
+						Dump.item( 'Foo' ),
+						Dump.item( 'Bar' ),
+						Dump.item( 'Buz' )
+					] )
+				] )
+			);
 		} );
 	} );
 

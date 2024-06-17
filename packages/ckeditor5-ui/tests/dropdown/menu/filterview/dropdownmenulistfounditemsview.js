@@ -57,7 +57,7 @@ describe( 'DropdownMenuListFoundItemsView', () => {
 			const searchRegexp = /Garlic/gi;
 			const menuRootList = createBlankRootListView( editor );
 
-			menuRootList.appendTopLevelChildren( [
+			menuRootList.factory.appendChildren( [
 				new DropdownMenuListItemButtonView( locale, 'Bread' ),
 				new DropdownMenuListItemButtonView( locale, 'Garlic' )
 			] );
@@ -189,7 +189,7 @@ describe( 'DropdownMenuListFoundItemsView', () => {
 				const searchRegexp = /Garlic/gi;
 				const menuRootList = createBlankRootListView( editor );
 
-				menuRootList.appendTopLevelChildren( [
+				menuRootList.factory.appendChildren( [
 					new DropdownMenuListItemButtonView( locale, 'Bread' ),
 					new DropdownMenuListItemButtonView( locale, 'Garlic' ),
 					new DropdownMenuListItemButtonView( locale, 'Bear Garlic' )
