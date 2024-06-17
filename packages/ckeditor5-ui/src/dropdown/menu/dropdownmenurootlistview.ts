@@ -87,6 +87,9 @@ export default class DropdownMenuRootListView extends DropdownMenuListView {
 	 */
 	public readonly editor: Editor;
 
+	/**
+	 * The factory used to create the dropdown menu list based on definition.
+	 */
 	public readonly factory: DropdownMenuListDefinitionFactory;
 
 	/**
