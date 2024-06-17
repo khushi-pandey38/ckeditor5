@@ -4,7 +4,7 @@
  */
 
 /**
- * @module ui/dropdown/menu/dropdownmenulistdefinitionfactory
+ * @module ui/dropdown/menu/definition/dropdownmenulistdefinitionfactory
  */
 
 import { once } from 'lodash-es';

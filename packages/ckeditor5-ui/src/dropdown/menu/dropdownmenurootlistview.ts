@@ -142,9 +142,8 @@ export default class DropdownMenuRootListView extends DropdownMenuListView {
 	}
 
 	/**
-	 * Returns an array of currently visible menu elements.
-	 *
-	 * @returns An array of currently visible menu elements.
+	 * Returns an array of currently visible menus elements. In other words it returns the elements of the menus that are
+	 * currently attached to the DOM. Menus are attached to the dom only when they are open.
 	 */
 	public getCurrentlyVisibleMenusElements(): Array<HTMLElement> {
 		const allMenusElements = this.menus.flatMap( menu => [
