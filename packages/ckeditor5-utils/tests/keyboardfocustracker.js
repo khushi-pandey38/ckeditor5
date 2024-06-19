@@ -7,9 +7,9 @@
 
 import testUtils from '@ckeditor/ckeditor5-core/tests/_utils/utils.js';
 import FocusTracker from '../src/focustracker.js';
-import KeyboardFocusTracker from '../src/keyboardfocustracker.js';
+import KeyboardFocusTracker, { GlobalKeyboardMouseInteractionTracker } from '../src/keyboardfocustracker.js';
 
-describe( 'KeyboardFocusTracker', () => {
+describe.only( 'KeyboardFocusTracker', () => {
 	let clock, container, containerFirstInput, containerSecondInput, focusTracker, keyboardFocusTracker;
 
 	testUtils.createSinonSandbox();
@@ -37,12 +37,11 @@ describe( 'KeyboardFocusTracker', () => {
 	describe( 'constructor()', () => {
 		it( 'should set proper default values', () => {
 			expect( keyboardFocusTracker.isFocusedUsingKeyboard ).to.be.false;
-			expect( keyboardFocusTracker.isKeyPressed ).to.be.false;
 			expect( keyboardFocusTracker.focusTracker ).to.be.equal( focusTracker );
 		} );
 
-		it( 'should initialize _domEmitter', () => {
-			expect( keyboardFocusTracker._domEmitter ).not.to.be.undefined;
+		it( 'should initialize _globalInteractionTracker', () => {
+			expect( keyboardFocusTracker._globalInteractionTracker ).to.be.instanceOf( GlobalKeyboardMouseInteractionTracker );
 		} );
 	} );
 
@@ -66,7 +65,7 @@ describe( 'KeyboardFocusTracker', () => {
 
 		describe( 'isKeyPressed=true', () => {
 			beforeEach( () => {
-				keyboardFocusTracker.isKeyPressed = true;
+				keyboardFocusTracker..isKeyPressed = true;
 			} );
 
 			it( 'should set isFocusedUsingKeyboard to true when focusTracker is focused', () => {
